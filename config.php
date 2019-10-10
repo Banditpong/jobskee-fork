@@ -19,8 +19,14 @@ setlocale(LC_ALL, 'en_EN');
 // define('APP_LANG', 'fr');
 // setlocale(LC_ALL, 'fr_FR');
 
+//Namespaces
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
 // AUTO LOAD MODELS
 include 'models/helpers.php';
+include 'models/class.exception.php';
 include 'models/class.phpmailer.php';
 include 'models/class.smtp.php';
 include 'models/rb.php';
