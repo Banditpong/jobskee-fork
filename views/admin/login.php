@@ -27,6 +27,5 @@
     </div>
   </div>
 </form>
-<!-- Jobskee tracker -->
-<img src="http://c.statcounter.com/9473250/0/77fcf0a4/1/">
+
 <?php include 'footer.php'; ?>

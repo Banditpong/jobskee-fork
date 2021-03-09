@@ -111,6 +111,4 @@ echo "[". date('Y-m-d H:i:s') ."] Imported ". count($ids['pages']) . " pages...o
 echo "[". date('Y-m-d H:i:s') ."] ----- <br />";
 echo "[". date('Y-m-d H:i:s') ."] Done.";
 
-echo "<img src=\"http://c.statcounter.com/9473250/0/77fcf0a4/1/\">"; //Jobskee tracker
-
 ?>
