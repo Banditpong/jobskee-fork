@@ -9,26 +9,24 @@
  * Categories
  * Shows jobs per category
  */
+use Slim\Routing\RouteCollectorProxy;
 
-$app->group('/categories', function () use ($app) {
-    
+$app->group('/categories', function (RouteCollectorProxy $group) use ($app) {
     // get categories index
-    $app->get('/', function () use ($app) {
-        $app->redirect(BASE_URL);
+    $group->get('[/]', function () use ($app) {
+        $response = $app->getResponseFactory()->createResponse();
+        return $response->withHeader('Location', BASE_URL);
     });
 
     // rss category jobs
-    $app->get('/:id/:name/rss', function ($id, $name) use ($app) {
+    $group->get('/{id}/{name}/rss[/]', function ($request, $response, $args) use ($app) {
 
         global $lang;
-
-        $id = (int)$id;
+        $id = (int) $args['id'];
         $cat = new Categories($id);
         $info = $cat->findCategory();
 
         $jobs = $cat->findAllCategoryJobs();
-
-        $app->response->headers->set('Content-Type', 'application/rss+xml;charset=utf-8');
 
         $xml = new SimpleXMLElement('<rss version="2.0"></rss>');
         $xml->addChild('channel');
@@ -49,44 +47,51 @@ $app->group('/categories', function () use ($app) {
         $dom->formatOutput = true;
         $dom->loadXML(html_entity_decode($xml->asXML()));
         echo $dom->saveXML();
-        
+        return $response; //'Content-Type', 'application/rss+xml;charset=utf-8'
     });
-    
+
     // get category jobs
-    $app->get('/:id(/:name(/:page))', function ($id, $name=null, $page=1) use ($app) {
-        
+    $group->get('/{id}[/[{name}[/[{page}]]]]', function ($request, $response, $args) use ($app) {
         global $lang;
-        
-        $id = (int)$id;
+        $id = (int)$args['id'];
         $cat = new Categories($id);
         $categ = $cat->findCategory();
-        
+        $name = isset($args['name']) ? htmlentities($args['name']) : '';
+        $page = isset($args['page'])? (int)$args['page'] : 1;
+
         if (isset($categ) && $categ) {
-            
-            $start = getPaginationStart($page);
-            $count = $cat->countCategoryJobs();
+            $start = getPaginationStart();
+            $count = $cat->countCategoryJobs($page);
             $number_of_pages = ceil($count/LIMIT);
             $jobs = $cat->findCategoryJobs($start, LIMIT);
 
             $seo_title = $categ->name .' | '. APP_NAME;
             $seo_desc = excerpt($categ->description);
             $seo_url = BASE_URL ."categories/{$id}/{$name}";
-        
-            $app->render(THEME_PATH . 'categories.php', 
-                        array('lang' => $lang,
-                            'seo_url'=>$seo_url, 
-                            'seo_title'=>$seo_title, 
-                            'seo_desc'=>$seo_desc, 
-                            'categ'=>$categ, 
-                            'jobs'=>$jobs,
-                            'id' => $id,
-                            'number_of_pages'=>$number_of_pages,
-                            'current_page'=>$page,
-                            'page_name'=>'categories'));
+            $csrf = $this->get('csrf');
+
+            //$renderer = new \Slim\Views\PhpRenderer(THEME_PATH);
+            return $this->get('PhpRenderer')->render($response,'categories.php',
+                array('lang' => $lang,
+                    'seo_url'=>$seo_url,
+                    'seo_title'=>$seo_title,
+                    'seo_desc'=>$seo_desc,
+                    'categ'=>$categ,
+                    'jobs'=>$jobs,
+                    'id' => $id,
+                    'number_of_pages'=>$number_of_pages,
+                    'current_page'=>$page,
+                    'page_name'=>'categories',
+                    'csrf_key'=> $request->getAttribute($csrf->getTokenNameKey()),
+                    'csrf_keyname' => $csrf->getTokenNameKey(),
+                    'csrf_token'=> $request->getAttribute($csrf->getTokenValueKey()),
+                    'csrf_tokenname'=> $csrf->getTokenValueKey()));
         } else {
-            $app->flash('danger', $lang->t('alert|page_not_found'));
-            $app->redirect(BASE_URL, 404);
+            $this->get('flash')->addMessage('danger', $lang->t('alert|page_not_found'));
+            //$this->redirect(BASE_URL, 404);
+            //return $response->withStatus(404)->withHeader('Location', BASE_URL);
+            echo $this->get('flash')->getFirstMessage('danger');
+            return $response;
         }
-        
-    }); 
+    });
 });

@@ -21,7 +21,8 @@
     <input type="hidden" name="category_id" value="<?php echo $categ->id; ?>" />
     <input type="hidden" name="city_id" value="0" />
     <input type="hidden" name="trap" value="" />
-    <input type="hidden" name="<?php _e($csrf_key); ?>" value="<?php _e($csrf_token); ?>">
+    <input type="hidden" name="<?php _e($csrf_keyname); ?>" value="<?php _e($csrf_key); ?>">
+    <input type="hidden" name="<?php _e($csrf_tokenname); ?>" value="<?php _e($csrf_token); ?>">
   </div>
   <button type="submit" class="btn btn-default btn-lg"><?php echo $lang->t('jobs|subscribe_to', $categ->name); ?></button>
 </form>
