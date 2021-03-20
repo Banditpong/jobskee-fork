@@ -78,8 +78,7 @@ $app->group('/cities', function (RouteCollectorProxy $group) use ($app) {
             $seo_title = $city->name .' | '. APP_NAME;
             $seo_desc = excerpt($city->description);
             $seo_url = BASE_URL ."cities/{$id}/{$name}";
-            $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'cities.php',
+            return $this->get('PhpRenderer')->render($response, THEME_PATH . 'cities.php',
                         array('lang' => $lang,
                             'flash'=>  $this->get('flash')->getMessages(),
                             'seo_url'=>$seo_url, 

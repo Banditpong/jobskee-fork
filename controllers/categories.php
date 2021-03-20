@@ -69,8 +69,7 @@ $app->group('/categories', function (RouteCollectorProxy $group) use ($app) {
             $seo_desc = excerpt($categ->description);
             $seo_url = BASE_URL ."categories/{$id}/{$name}";
             $csrf = $this->get('csrf');
-            $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response,'categories.php',
+            return $this->get('PhpRenderer')->render($response, THEME_PATH . 'categories.php',
                 array('lang' => $lang,
                     'flash'=>  $this->get('flash')->getMessages(),
                     'seo_url'=>$seo_url,

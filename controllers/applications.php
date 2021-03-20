@@ -27,8 +27,7 @@ $app->group('/apply', function (RouteCollectorProxy $group)  use ($app, $mwHelpe
         
         $job = new Applications($job_id);
         $title = $job->getJobTitle();
-        $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
-        return $this->get('PhpRenderer')->render($response, 'apply.new.php',
+        return $this->get('PhpRenderer')->render($response, THEME_PATH . 'apply.new.php',
                     array('lang' => $lang,
                         'flash'=>  $this->get('flash')->getMessages(),
                         'seo_url'=>$seo_url, 

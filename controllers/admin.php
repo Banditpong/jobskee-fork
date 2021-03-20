@@ -54,8 +54,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             }
         }
 
-        $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);
-        return $this->get('PhpRenderer')->render($response, 'login.php', $val);
+        return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'login.php', $val);
     });
 
     // authenticate user
@@ -105,8 +104,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
                 $jobs[$cat->id] = $j->getJobs(INACTIVE, $cat->id);
             }
 
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);
-            return $this->get('PhpRenderer')->render($response, 'home.php',
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'home.php',
                 array(
                     'lang' => $lang,
                     'flash' => $this->get('flash')->getMessages(),
@@ -159,8 +157,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
                 }
 
                 $categories = Categories::findCategories();
-                $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);
-                return $this->get('PhpRenderer')->render($response, 'categories.edit.php',
+                return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'categories.edit.php',
                     array('lang' => $lang, 'flash'=>  $this->get('flash')->getMessages(), 'categs' => $categories, 'category' => $category,
                         'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
                         'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
@@ -212,8 +209,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
                     return $response->withHeader('Location', ADMIN_MANAGE . '/cities');
                 }
                 $cities = Cities::findCities();
-                $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-                return $this->get('PhpRenderer')->render($response, 'cities.edit.php',
+                return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'cities.edit.php',
                     array('lang' => $lang, 'cits' => $cities, 'city' => $city, 'flash' => $this->get('flash')->getMessages(),
                         'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
                         'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
@@ -237,8 +233,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
         $group->get('/upload', function ($request, $response, $args) use ($app) {
 
             global $lang;
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'upload.php', array('lang' => $lang,
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'upload.php', array('lang' => $lang,
                 'flash'=>  $this->get('flash')->getMessages(),
                 'filestyle' => ACTIVE,
                 'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
@@ -337,8 +332,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             global $lang;
             $csrf = $this->get('csrf');
             $token = token();
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'job.new.php',
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'job.new.php',
                 array(
                     'lang' => $lang,
                     'flash' => $this->get('flash')->getMessages(),
@@ -445,9 +439,8 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             $title = $j->getSlugTitle();
             $city = $j->getJobCity($job->city);
             $category = $j->getJobCategory($job->category);
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
             if (isset($job) && $job->id) {
-                return $this->get('PhpRenderer')->render($response, 'job.publish.php',
+                return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'job.publish.php',
                     array(
                         'lang' => $lang,
                         'flash' => $this->get('flash')->getMessages(),
@@ -468,9 +461,8 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             $token = $args['token'];
             $j = new Jobs($id);
             $job = $j->getJobFromToken($token);
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
             if (isset($job) && $job->id) {
-                return $this->get('PhpRenderer')->render($response, 'job.review.php',
+                return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'job.review.php',
                     array(
                         'lang' => $lang,
                         'flash' => $this->get('flash')->getMessages(),
@@ -580,9 +572,8 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             $city = $j->getJobCity($job->city);
             $category = $j->getJobCategory($job->category);
             $applications = $j->countJobApplications();
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
             if (isset($job) && $job->id) {
-                return $this->get('PhpRenderer')->render($response, 'job.show.php',
+                return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'job.show.php',
                     array(
                         'lang' => $lang,
                         'flash' => $this->get('flash')->getMessages(),
@@ -624,9 +615,8 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
             $categ = $cat->findCategory();
             $jobs = $cat->findCategoryJobs($start, LIMIT);
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
             if (isset($categ) && $categ) {
-                return $this->get('PhpRenderer')->render($response, 'categories.php',
+                return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'categories.php',
                     array(
                         'lang' => $lang,
                         'flash' => $this->get('flash')->getMessages(),
@@ -670,9 +660,8 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
             $city = $cit->findCity();
             $jobs = $cit->findCityJobs($start, LIMIT);
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
             if (isset($city) && $city) {
-                return $this->get('PhpRenderer')->render($response, 'cities.php',
+                return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'cities.php',
                     array(
                         'lang' => $lang,
                         'flash' => $this->get('flash')->getMessages(),
@@ -714,8 +703,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
         $group->get('/new', function ($request, $response, $args) use ($app) {
 
             global $lang;
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response,'pages.new.php',
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'pages.new.php',
                 array('lang' => $lang, 'method' => 'new', 'markdown' => ACTIVE,
                     'flash' => $this->get('flash')->getMessages(),
                     'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
@@ -731,8 +719,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
             $p = new Pages();
             $page = $p->showPage($id);
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'pages.edit.php',
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'pages.edit.php',
                 array('lang' => $lang, 'page' => $page, 'method' => 'edit', 'markdown' => ACTIVE,
                     'flash' => $this->get('flash')->getMessages(),
                     'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
@@ -764,8 +751,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             $number_of_pages = ceil($count / LIMIT);
 
             $pages = $p->showPageList($start, LIMIT);
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'pages.php',
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'pages.php',
                 array(
                     'lang' => $lang,
                     'flash' => $this->get('flash')->getMessages(),
@@ -807,8 +793,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
         $group->get('/new', function ($request, $response, $args) use ($app) {
 
             global $lang;
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'blocks.new.php',
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'blocks.new.php',
                 array('lang' => $lang, 'method' => 'new',
                     'flash'=>  $this->get('flash')->getMessages(),
                     'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
@@ -824,8 +809,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
             $b = new Blocks();
             $block = $b->showBlock($id);
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'blocks.edit.php',
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'blocks.edit.php',
                 array('lang' => $lang, 'block' => $block, 'method' => 'edit',
                 'flash'=>  $this->get('flash')->getMessages(),
                 'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
@@ -857,8 +841,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             $number_of_pages = ceil($count / LIMIT);
 
             $blocks = $b->showBlockList($start, LIMIT);
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'blocks.php',
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'blocks.php',
                 array(
                     'lang' => $lang,
                     'flash' => $this->get('flash')->getMessages(),
@@ -914,10 +897,8 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             $start = getPaginationStart($page);
             $count = $ban->countBanList();
             $number_of_pages = ceil($count / LIMIT);
-
             $list = $ban->showBanList($start, LIMIT);
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'banlist.php',
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'banlist.php',
                 array(
                     'lang' => $lang,
                     'list' => $list,
@@ -951,8 +932,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             $number_of_pages = ceil($count / LIMIT);
 
             $applications = $a->getApplications($start);
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'applications.php',
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'applications.php',
                 array(
                     'lang' => $lang,
                     'flash' => $this->get('flash')->getMessages(),
@@ -980,8 +960,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             $title = $j->getSeoTitle();
 
             $applications = $a->getApplications($start);
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'applications.job.php',
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'applications.job.php',
                 array(
                     'lang' => $lang,
                     'flash' => $this->get('flash')->getMessages(),
@@ -1012,8 +991,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             $number_of_pages = ceil($count / LIMIT);
 
             $users = $s->getAllSubscriptions($start);
-            $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'subscribers.php',
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'subscribers.php',
                 array(
                     'lang' => $lang,
                     'flash' => $this->get('flash')->getMessages(),

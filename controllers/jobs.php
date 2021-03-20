@@ -23,8 +23,7 @@ $app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers
         $seo_url = BASE_URL .'jobs/new';
 
         $csrf = $this->get('csrf');
-        $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
-        return $this->get('PhpRenderer')->render($response, 'job.new.php',
+        return $this->get('PhpRenderer')->render($response, THEME_PATH . 'job.new.php',
                 array('lang' => $lang,
                     'seo_url'=>$seo_url, 
                     'seo_title'=>$seo_title, 
@@ -98,9 +97,11 @@ $app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers
         global $lang;
 
         $data = $request->getParsedBody() ;//todo?
-        $id = $args['id'];
+        $id = (int) $args['id'];
+        $token = isset($args['token']) ? $args['token'] : '';
+
         $j = new Jobs($id);
-        $job = $j->getJobFromToken($args['token']);
+        $job = $j->getJobFromToken($token);
         
         $data['is_featured'] = (isset($data['is_featured'])) ? 1 : 0;
 
@@ -142,6 +143,8 @@ $app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers
     $group->get('/{id}/publish[/{token}]', function ($request, $response, $args) use ($app) {
         
         global $lang;
+        $id = (int) $args['id'];
+        $token = isset($args['token']) ? $args['token'] : '';
 
         $j = new Jobs($id);
         $job = $j->getJobFromToken($token);
@@ -155,8 +158,7 @@ $app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers
             $seo_title = clean($job->title) .' | '. APP_NAME;
             $seo_desc = excerpt($job->description);
             $seo_url = BASE_URL ."jobs/{$id}/{$title}";
-            $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'job.publish.php',
+            return $this->get('PhpRenderer')->render($response, THEME_PATH . 'job.publish.php',
                         array('lang' => $lang,
                             'flash'=>  $this->get('flash')->getMessages(),
                             'seo_url'=>$seo_url, 
@@ -192,8 +194,7 @@ $app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers
             $seo_desc = APP_DESC;
             $seo_url = BASE_URL;
             $csrf = $this->get('csrf');
-            $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'job.review.php',
+            return $this->get('PhpRenderer')->render($response, THEME_PATH . 'job.review.php',
                         array('lang' => $lang,
                             'seo_url'=>$seo_url, 
                             'seo_title'=>$seo_title, 
@@ -216,6 +217,9 @@ $app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers
     $group->get('/{id}/delete[/{token}]', function ($request, $response, $args) use ($app) {
         
         global $lang;
+        $id = (int) $args['id'];
+        $token = isset($args['token']) ? $args['token'] : '';
+
         $j = new Jobs($id);
         if ($j->deleteJob($token)) {
             $app->getContainer()->get('flash')->addMessage('success', $lang->t('admin|delete_success', $id));
@@ -231,6 +235,9 @@ $app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers
     $group->get('/{id}/activate[/{token}]', function ($request, $response, $args) use ($app) {
         
         global $lang;
+
+        $id = (int) $args['id'];
+        $token = isset($args['token']) ? $args['token'] : '';
 
         $j = new Jobs($id);
         $title = $j->getSlugTitle();
@@ -253,7 +260,9 @@ $app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers
     $group->get('/{id}/deactivate[/{token}]', function ($request, $response, $args) use ($app) {
 
         global $lang;
-        
+        $id = (int) $args['id'];
+        $token = isset($args['token']) ? $args['token'] : '';
+
         $j = new Jobs($id);
         var_dump($j);
         if ($j->deactivateJob($token)) {
@@ -283,8 +292,7 @@ $app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers
             $seo_title = clean($job->title) .' | '. APP_NAME;
             $seo_desc = excerpt($job->description);
             $seo_url = BASE_URL ."jobs/{$args['id']}/{$args['title']}";
-            $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
-            return $this->get('PhpRenderer')->render($response, 'job.show.php',
+            return $this->get('PhpRenderer')->render($response, THEME_PATH . 'job.show.php',
                     array('lang' => $lang,
                         'flash'=>  $this->get('flash')->getMessages(),
                         'seo_url'=>$seo_url, 

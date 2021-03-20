@@ -28,8 +28,7 @@ $app->group('/search', function (RouteCollectorProxy $group) use ($app) {
         $jobs = $s->searchJobs($args['terms']);
         $count = $s->countJobs($args['terms']);
         $csrf = $this->get('csrf');
-        $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
-        return $this->get('PhpRenderer')->render($response, 'search.php',
+        return $this->get('PhpRenderer')->render($response, THEME_PATH . 'search.php',
                     array('lang' => $lang,
                         'terms'=>$args['terms'],
                         'count'=>$count,
