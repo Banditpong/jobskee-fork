@@ -1,8 +1,8 @@
 About
 -----
-Jobskee is an open source job board with minimal configuration and relatively small footprint.
+Jobskee is an open source job board with minimal configuration and relatively small footprint. This is an updated  version of Jobskee that is compatible with PHP 7.2+ and Slim 4.7.x
 
-Author
+Original Author
 ------
 Elinore Tenorio (elinore.tenorio@gmail.com)  
 Manila, Philippines
@@ -10,7 +10,7 @@ Manila, Philippines
 Stacks used
 -----------
 
-* Slim Microframework
+* Slim Microframework (Slim 4.7.x)
 * RedBeanPHP
 * Bootstrap 3 UI
 * PHPMailer
