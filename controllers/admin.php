@@ -79,14 +79,14 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
     })->add($mwHelpers['isValidReferrer']);
 
     // logout admin
-    $group->get('/logout', function () use ($app) {
+    $group->get('/logout', function ($request, $response, $args) use ($app) {
 
         global $lang;
 
         unset($_SESSION['email']);
         unset($_SESSION['is_admin']);
-        //$app->flash('success', $lang->t('admin|logout_success'));//TODO
-        return $app->redirect('/logout', '/login', 302);//TODO. do i need admin/login or just /login or login
+        $app->getContainer()->get('flash')->addMessage('success', $lang->t('admin|logout_success'));//TODO
+        return $response->withHeader('Location', LOGIN_URL);
     })->add($mwHelpers['validateUser']);
 
     /*
@@ -238,7 +238,13 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
             global $lang;
             $this->get('PhpRenderer')->setTemplatePath(ADMIN_THEME_PATH);//Put this here??
-            $app->render(ADMIN_THEME . 'upload.php', array('lang' => $lang, 'filestyle' => ACTIVE));
+            return $this->get('PhpRenderer')->render($response, 'upload.php', array('lang' => $lang,
+                'flash'=>  $this->get('flash')->getMessages(),
+                'filestyle' => ACTIVE,
+                'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
+                'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
+                'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
+                'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
         });
 
         // process csv file
@@ -299,16 +305,16 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
                     if (file_exists($csv)) {
                         unlink($csv);
                     }
-                    $app->flash('success', $lang->t('admin|upload_success', $added));
-                    $app->redirect(ADMIN_URL . 'jobs/upload');
+                    $app->getContainer()->get('flash')->addMessage('success', $lang->t('admin|upload_success', $added));
+                    return $response->withHeader('Location', ADMIN_URL . 'jobs/upload');
 
                 } else {
-                    $app->flash('danger', $lang->t('admin|upload_invalid'));
-                    $app->redirect(ADMIN_URL . 'jobs/upload');
+                    $app->getContainer()->get('flash')->addMessage('danger', $lang->t('admin|upload_invalid'));
+                    return $response->withHeader('Location', ADMIN_URL . 'jobs/upload');
                 }
             } else {
-                $app->flash('danger', $lang->t('admin|upload_none'));
-                $app->redirect(ADMIN_URL . 'admin/upload');
+                $app->getContainer()->get('flash')->addMessage('danger', $lang->t('admin|upload_none'));
+                return $response->withHeader('Location', ADMIN_URL . 'admin/upload');
             }
 
         })->add($mwHelpers['isValidReferrer']);
@@ -355,7 +361,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             $data = escape($data);
 
             if ($data['trap'] != '') {
-                $app->redirect(ADMIN_URL . "jobs/new");
+                return $response->withHeader('Location', ADMIN_URL . "jobs/new");
             }
 
             if (isset($_FILES['logo']) && $_FILES['logo']['name'] != '') {
