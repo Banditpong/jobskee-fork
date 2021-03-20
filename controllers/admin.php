@@ -330,7 +330,6 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
         $group->get('/new', function (\Slim\Psr7\Request $request, $response, $args) use ($app) {
 
             global $lang;
-            $csrf = $this->get('csrf');
             $token = token();
             return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'job.new.php',
                 array(
@@ -339,11 +338,10 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
                     'token' => $token,
                     'markdown' => ACTIVE,
                     'filestyle' => ACTIVE,
-                    'csrf_key' => $request->getAttribute($csrf->getTokenNameKey()),
-                    'csrf_keyname' => $csrf->getTokenNameKey(),
-                    'csrf_token' => $request->getAttribute($csrf->getTokenValueKey()),
-                    'csrf_tokenname' => $csrf->getTokenValueKey()
-                ));
+                    'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
+                    'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
+                    'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
+                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
         });
 
         // review job

@@ -22,7 +22,6 @@ $app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers
         $seo_desc = 'Post a new job at '. APP_NAME;
         $seo_url = BASE_URL .'jobs/new';
 
-        $csrf = $this->get('csrf');
         return $this->get('PhpRenderer')->render($response, THEME_PATH . 'job.new.php',
                 array('lang' => $lang,
                     'seo_url'=>$seo_url, 
@@ -31,10 +30,10 @@ $app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers
                     'token'=>$token,
                     'markdown'=>ACTIVE,
                     'filestyle'=>ACTIVE,
-                    'csrf_key'=> $request->getAttribute($csrf->getTokenNameKey()),
-                    'csrf_keyname' => $csrf->getTokenNameKey(),
-                    'csrf_token'=> $request->getAttribute($csrf->getTokenValueKey()),
-                    'csrf_tokenname'=> $csrf->getTokenValueKey()));
+                    'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
+                    'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
+                    'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
+                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
     })->add($mwHelpers['isJobPostAllowed'])->add($mwHelpers['isBanned']);
 
     // review job
@@ -193,7 +192,6 @@ $app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers
             $seo_title = 'Edit job | '. APP_NAME;
             $seo_desc = APP_DESC;
             $seo_url = BASE_URL;
-            $csrf = $this->get('csrf');
             return $this->get('PhpRenderer')->render($response, THEME_PATH . 'job.review.php',
                         array('lang' => $lang,
                             'seo_url'=>$seo_url, 
@@ -202,10 +200,10 @@ $app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers
                             'job'=>$job,
                             'markdown'=>ACTIVE,
                             'filestyle'=>ACTIVE,
-                            'csrf_key'=> $request->getAttribute($csrf->getTokenNameKey()),
-                            'csrf_keyname' => $csrf->getTokenNameKey(),
-                            'csrf_token'=> $request->getAttribute($csrf->getTokenValueKey()),
-                            'csrf_tokenname'=> $csrf->getTokenValueKey()));
+                            'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
+                            'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
+                            'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
+                            'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
         } else {
             $app->getContainer()->get('flash')->addMessage('danger', $lang->t('alert|error_encountered'));
             return $response->withHeader('Location', BASE_URL . "jobs/{$id}/{$title}");

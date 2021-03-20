@@ -27,7 +27,7 @@ $app->group('/search', function (RouteCollectorProxy $group) use ($app) {
         
         $jobs = $s->searchJobs($args['terms']);
         $count = $s->countJobs($args['terms']);
-        $csrf = $this->get('csrf');
+
         return $this->get('PhpRenderer')->render($response, THEME_PATH . 'search.php',
                     array('lang' => $lang,
                         'terms'=>$args['terms'],
@@ -36,9 +36,9 @@ $app->group('/search', function (RouteCollectorProxy $group) use ($app) {
                         'seo_title'=>$lang->t('search|search_result') .' '. APP_NAME, 
                         'seo_desc'=>$lang->t('search|search_result') .' '. APP_NAME,
                         'jobs'=>$jobs,
-                        'csrf_key'=> $request->getAttribute($csrf->getTokenNameKey()),
-                        'csrf_keyname' => $csrf->getTokenNameKey(),
-                        'csrf_token'=> $request->getAttribute($csrf->getTokenValueKey()),
-                        'csrf_tokenname'=> $csrf->getTokenValueKey()));
+                        'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
+                        'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
+                        'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
+                        'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
     });
 });

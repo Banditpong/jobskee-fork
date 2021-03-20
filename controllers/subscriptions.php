@@ -12,7 +12,7 @@ use Slim\Routing\RouteCollectorProxy;
  */
 
 
-$app->group('/subscribe', function (RouteCollectorProxy $group) use ($app) {
+$app->group('/subscribe', function (RouteCollectorProxy $group) use ($app, $mwHelpers) {
 
     $group->post('/new', function ($request, $response, $args) use ($app) {
         
@@ -42,11 +42,14 @@ $app->group('/subscribe', function (RouteCollectorProxy $group) use ($app) {
             $app->getContainer()->get('flash')->addMessage('danger', $lang->t('subscribe|not_allowed'));
             return $response->withHeader('Location', BASE_URL . "{$redirect}/{$id}");
         }
-    });//'isBanned'
+    });
 
-    $group->get('/:id/:action/:token', 'isBanned', function ($id, $action, $token) use ($app) {
+    $group->get('/{id}/{action}/{token}', function ($request, $response, $args) use ($app) {
 
         global $lang;
+        $id = (int)$args['id'];
+        $action = isset($args['action']) ? $args['action']: null;
+        $token = isset($args['token']) ? $args['token']: null;
 
         $status = ($action == 'confirm') ? ACTIVE : INACTIVE;
         $s = new Subscriptions('');
@@ -66,4 +69,4 @@ $app->group('/subscribe', function (RouteCollectorProxy $group) use ($app) {
         
     });
     
-});
+})->add($mwHelpers['isBanned']);
