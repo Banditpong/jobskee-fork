@@ -25,14 +25,23 @@ use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
 // AUTO LOAD MODELS
+
 include 'models/helpers.php';
 include 'models/class.exception.php';
 include 'models/class.phpmailer.php';
 include 'models/class.smtp.php';
 include 'models/rb.php';
+
 spl_autoload_register(function ($class) {
 	if (file_exists("models/{$class}.php")) { include "models/{$class}.php"; }	
 });
+
+
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+//use Slim\Csrf\Guard;
+use Slim\Factory\AppFactory;
+
 
 // LOAD TRANSLATION
 $lang = new Translate();
@@ -113,6 +122,7 @@ define('VIEWS_PATH', 'views');
 define('CONTROLLER_PATH','controllers/');
 
 // CORE THEME SETTINGS
+define('APP_VIEWS_PATH', APP_PATH . VIEWS_PATH .'/');
 define('THEME_PATH', APP_THEME .'/');
 define('THEME_ASSETS', BASE_URL . VIEWS_PATH .'/'. THEME_PATH .'assets/');
 
@@ -130,18 +140,44 @@ if (APP_MODE == 'production') {
 }
 
 // SLIM MICROFRAMEWORK
-require 'Slim/Slim.php';
-\Slim\Slim::registerAutoloader();
+require __DIR__ . '/vendor/autoload.php';
 
-// SLIM CSRF GUARD
+$container = new DI\Container();
+$container->set('PhpRenderer', function () {
+    return new \Slim\Views\PhpRenderer(APP_VIEWS_PATH);
+});
+
+AppFactory::setContainer($container);
+$app = AppFactory::create();//check how to add settings and modes.
+
+$app->setBasePath("/jobskee");
+
+
+$responseFactory = $app->getResponseFactory();
+// Register Middleware On Container
+$container->set('csrf', function () use ($responseFactory) {
+    return new \Slim\Csrf\Guard($responseFactory);
+});
+
+// Register provider
+$container->set('flash', function () {
+    return new \Slim\Flash\Messages();
+});
+// Register Middleware To Be Executed On All Routes
+$app->add('csrf');//TODO ??
+
+/*// SLIM CSRF GUARD
 require 'Slim/Extras/Middleware/CsrfGuard.php';
-
 $app = new \Slim\Slim(array('mode'=>APP_MODE, 'templates.path'=>VIEWS_PATH, 'debug'=>$debug));
 $app->add(new \Slim\Extras\Middleware\CsrfGuard());
 $app->notFound(function () use ($app) {
     $app->flash('danger', 'The page you are looking for could not be found.');
     $url = (userIsValid()) ? ADMIN_MANAGE : BASE_URL;
     $app->redirect($url);
-});
+});*/
 
-$app->flashKeep();
+
+//$app->add(new \Slim\Extras\Middleware\CsrfGuard());//check this for an update.
+
+
+//$app->flashKeep();
