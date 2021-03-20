@@ -101,31 +101,39 @@ function escape($raw) {
 /*
  * allow job posting if ALLOW_JOB_POST = 1
  */
-function isJobPostAllowed() {
-    global $lang;
-    $app = \Slim\Slim::getInstance();
+function isJobPostAllowed(Slim\Psr7\Request $request,Slim\Routing\Route $route) {
+    global $lang, $app;
+
+    $container = $app->getContainer();
+
     if (ALLOW_JOB_POST != 1 && (!isset($_SESSION['email']) || !$_SESSION['email'])) {
-        $app->flash('danger', 'Job posting is not allowed.');
-        $app->redirect(BASE_URL);
+        $container->get('flash')->addMessage('danger', 'Job posting is not allowed.');
+        return $app->getResponseFactory()->createResponse()->withHeader('Location', BASE_URL);
     }
-}
+
+    $response = $route->handle($request);
+    return $response;
+};
 
 /*
  * protects admin pages by first authenticating the user
  */
-function validateUser() {
-    global $lang;
-    $app = \Slim\Slim::getInstance();
+function validateUser($request, $route) {
+    global $lang, $app;
+
     if (!isset($_SESSION['email']) || !$_SESSION['email']) {
-        $app->flash('danger', $lang->t('alert|login_needed'));
-        $app->redirect(LOGIN_URL);
+        $app->getContainer()->get('flash')->addMessage('danger', $lang->t('alert|login_needed'));
+        return $app->getResponseFactory()->createResponse()->withHeader('Location', LOGIN_URL);
     } else {
         $admin = R::findOne('admin', ' email=:email ', array(':email'=>$_SESSION['email']));
         if (!$admin->id) {
-            $app->flash('danger', $lang->t('alert|invalid_login'));
-            $app->redirect(LOGIN_URL);
+            $app->getContainer()->get('flash')->addMessage('danger', $lang->t('alert|invalid_login'));
+            return $app->getResponseFactory()->createResponse()->withHeader('Location', LOGIN_URL);
         }
     }
+
+    $response = $route->handle($request);//this goes back to the route.
+    return $response;
 }
 
 /*
@@ -146,27 +154,31 @@ function userIsValid() {
 /*
  * checks whether IP address is in the ban list
  */
-function isBanned() {
-    global $lang;
-    $app = \Slim\Slim::getInstance();
+function isBanned($request,$route) {
+    global $lang, $app;
     $ban = R::findOne('banlist', ' value=:value ', array(':value'=>$_SERVER['REMOTE_ADDR']));
     if ($ban && $ban->id) {
-        $app->flash('danger', $lang->t('alert|ip_banned', $_SERVER['REMOTE_ADDR']));
-        $app->redirect(BASE_URL);
+        $app->getContainer()->get('flash')->addMessage('danger', $lang->t('alert|ip_banned', $_SERVER['REMOTE_ADDR']));
+        return $app->getResponseFactory()->createResponse()->withHeader('Location', BASE_URL);;
     }
+
+    $response = $route->handle($request);//this goes back to the route.
+    return $response;
 }
 
 /*
  * checks whether the referrer is the site itself
  */
-function isValidReferrer() {
-    global $lang;
-    $app = \Slim\Slim::getInstance();
-    $req = $app->request;
-    if (stripos($req->getReferrer(), BASE_URL, 0) === false) {
-        $app->flash('danger', $lang->t('alert|operation_not_allowed'));
-        $app->redirect(BASE_URL);
+function isValidReferrer($request, $route)  {
+    global $lang, $app;
+
+    if (stripos($request->getHeader("HTTP_REFERER")[0], BASE_URL, 0) === false) {
+        $app->getContainer()->get('flash')->addMessage('danger', $lang->t('alert|operation_not_allowed'));
+        return $app->getResponseFactory()->createResponse()->withHeader('Location', BASE_URL);
     }
+
+    $response = $route->handle($request);
+    return $response;
 }
 
 /*
@@ -204,3 +216,16 @@ function curlGet($url) {
     $resp = curl_exec($curl);
     curl_close($curl);
 }
+
+$mwHelpers['isJobPostAllowed'] = function ($request, $route) {
+    return isJobPostAllowed($request, $route);
+};
+$mwHelpers['validateUser'] = function ($request, $route) {
+    return validateUser($request, $route);
+};
+$mwHelpers['isValidReferrer'] = function ($request, $route) {
+    return isValidReferrer($request, $route);
+};
+$mwHelpers['isBanned'] = function ($request, $route) {
+    return isBanned($request, $route);
+};
