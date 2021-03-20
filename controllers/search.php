@@ -9,36 +9,37 @@
  * Search
  * Search for jobs
  */
+use Slim\Routing\RouteCollectorProxy;
 
-$app->group('/search', function () use ($app) {
-    
-   $app->post('/', function () use ($app) {
-        
-        $data = $app->request->post('terms');
-        
-        $terms = escape($data);
+$app->group('/search', function (RouteCollectorProxy $group) use ($app) {
+
+    $group->post('[/]', function ($request, $response, $args) use ($app) {
+
+        $data = $request->getParsedBody();
+        $terms = escape($data['terms']);
         $terms = urlencode($terms);
-        
-        $app->redirect(BASE_URL . "search/{$terms}");
+        return $response->withHeader('Location', BASE_URL . "search/{$terms}");
     });
 
-    $app->get('(/:terms)', 'isBanned', function ($terms='') use ($app) {
-        
+    $group->get('/{terms}', function ($request, $response, $args) use ($app) {
         global $lang;
         $s = new Search();
         
-        $jobs = $s->searchJobs($terms);
-        $count = $s->countJobs($terms);
-        
-        $app->render(THEME_PATH . 'search.php', 
+        $jobs = $s->searchJobs($args['terms']);
+        $count = $s->countJobs($args['terms']);
+        $csrf = $this->get('csrf');
+        $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
+        return $this->get('PhpRenderer')->render($response, 'search.php',
                     array('lang' => $lang,
-                        'terms'=>$terms,
+                        'terms'=>$args['terms'],
                         'count'=>$count,
                         'seo_url'=>BASE_URL . 'search', 
                         'seo_title'=>$lang->t('search|search_result') .' '. APP_NAME, 
                         'seo_desc'=>$lang->t('search|search_result') .' '. APP_NAME,
-                        'jobs'=>$jobs));
-        
-    }); 
-    
+                        'jobs'=>$jobs,
+                        'csrf_key'=> $request->getAttribute($csrf->getTokenNameKey()),
+                        'csrf_keyname' => $csrf->getTokenNameKey(),
+                        'csrf_token'=> $request->getAttribute($csrf->getTokenValueKey()),
+                        'csrf_tokenname'=> $csrf->getTokenValueKey()));
+    });
 });

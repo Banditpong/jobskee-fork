@@ -63,7 +63,8 @@
               <input type="hidden" id="job_id" name="job_id" value="<?php _e($job_id); ?>" />
               <input type="hidden" id="token" name="token" value="<?php _e($token); ?>" />
               <input type="hidden" id="trap" name="trap" value="" />
-              <input type="hidden" name="<?php _e($csrf_key); ?>" value="<?php _e($csrf_token); ?>">
+                <input type="hidden" name="<?php _e($csrf_keyname); ?>" value="<?php _e($csrf_key); ?>">
+                <input type="hidden" name="<?php _e($csrf_tokenname); ?>" value="<?php _e($csrf_token); ?>">
               <input type="submit" class="btn btn-success btn-lg" value="<?php echo $lang->t('apply|btn_submit'); ?>" />
             </div>
         </div>

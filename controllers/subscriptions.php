@@ -1,4 +1,5 @@
 <?php
+use Slim\Routing\RouteCollectorProxy;
 /**
  * Jobskee - open source job board
  *
@@ -10,15 +11,17 @@
  * Create and manage email subscriptions
  */
 
-$app->group('/subscribe', function () use ($app) {
-    
-    $app->post('/new', 'isBanned', function () use ($app) {
+
+$app->group('/subscribe', function (RouteCollectorProxy $group) use ($app) {
+
+    $group->post('/new', function ($request, $response, $args) use ($app) {
         
         global $categories, $cities;
         global $lang;
         
-        $data = $app->request->post();
-        
+        $data = $request->getParsedBody();
+        $data = escape($data);
+
         $redirect = ($data['category_id'] > 0) ? 'categories' : 'cities';
         $id = ($data['category_id'] > 0) ? $data['category_id'] : $data['city_id'];
         if ($data['category_id'] > 0) {
@@ -30,18 +33,18 @@ $app->group('/subscribe', function () use ($app) {
         if ($data['trap'] == '') {
             $subscribe = new Subscriptions($data['email'], $data['category_id'], $data['city_id']);
             if ($subscribe->createSubscription($subscription_for)) {
-                $app->flash('success', $lang->t('subscribe|confirm_email'));
+                $app->getContainer()->get('flash')->addMessage('success', $lang->t('subscribe|confirm_email'));
             } else {
-                $app->flash('danger', $lang->t('subscribe|existing'));
+                $app->getContainer()->get('flash')->addMessage('danger', $lang->t('subscribe|existing'));
             }
-            $app->redirect(BASE_URL . "{$redirect}/{$id}");
+            return $response->withHeader('Location', BASE_URL . "{$redirect}/{$id}");
         } else {
-            $app->flash('danger', $lang->t('subscribe|not_allowed'));
-            $app->redirect(BASE_URL . "{$redirect}/{$id}");
+            $app->getContainer()->get('flash')->addMessage('danger', $lang->t('subscribe|not_allowed'));
+            return $response->withHeader('Location', BASE_URL . "{$redirect}/{$id}");
         }
-    });
-    
-    $app->get('/:id/:action/:token', 'isBanned', function ($id, $action, $token) use ($app) {
+    });//'isBanned'
+
+    $group->get('/:id/:action/:token', 'isBanned', function ($id, $action, $token) use ($app) {
 
         global $lang;
 
@@ -51,14 +54,14 @@ $app->group('/subscribe', function () use ($app) {
         if ($user) {
             $s->updateSubscription($id, $status);
             if ($status == ACTIVE) {
-                $app->flash('success', $lang->t('subscribe|confirmed'));
+                $app->getContainer()->get('flash')->addMessage('success', $lang->t('subscribe|confirmed'));
             } else {
-                $app->flash('success', $lang->t('subscribe|cancel'));
+                $app->getContainer()->get('flash')->addMessage('success', $lang->t('subscribe|cancel'));
             }
-            $app->redirect(BASE_URL);
+            return $response->withHeader('Location', BASE_URL);
         } else {
-            $app->flash('danger', $lang->t('subscribe|confirm_error'));
-            $app->redirect(BASE_URL);
+            $app->getContainer()->get('flash')->addMessage('danger', $lang->t('subscribe|confirm_error'));
+            return $response->withHeader('Location', BASE_URL);
         }
         
     });

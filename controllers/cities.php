@@ -1,4 +1,6 @@
 <?php
+use Slim\Routing\RouteCollectorProxy;
+
 /**
  * Jobskee - open source job board
  *
@@ -10,19 +12,22 @@
  * Shows jobs per city
  */
 
-$app->group('/cities', function () use ($app) {
+
+$app->group('/cities', function (RouteCollectorProxy $group) use ($app) {
     
     // get cities index
-    $app->get('/', function () use ($app) {
-        $app->redirect(BASE_URL);
+    $group->get('', function () use ($app) {
+        $response = $app->getResponseFactory()->createResponse();
+        return $response->withHeader('Location', BASE_URL);
     });
 
     // rss city jobs
-    $app->get('/:id/:name/rss', function ($id, $name) use ($app) {
+    $group->get('/{id}/{name}/rss', function ($request, $response, $args) use ($app) {
 
         global $lang;
+        $id = isset($args['id']) ? intval($args['id']) : null;
+        $name = isset($args['name']) ?  $args['name']: null;
 
-        $id = (int)$id;
         $city = new Cities($id);
         $info = $city->findCity();
 
@@ -53,11 +58,13 @@ $app->group('/cities', function () use ($app) {
     });
     
     // get city jobs
-    $app->get('/:id(/:name(/:page))', function ($id, $name=null, $page=1) use ($app) {
+    $group->get('/{id}[/[{name}[/[{page}]]]]', function ($request, $response, $args) use ($app) {
         
         global $lang;
+        $id = isset($args['id']) ? intval($args['id']) : null;
+        $name = isset($args['name']) ?  $args['name']: null;
+        $page = isset($args['page']) ? intval($args['page']) : 1;
 
-        $id = (int)$id;
         $cit = new Cities($id);
         $city = $cit->findCity();
         
@@ -71,9 +78,10 @@ $app->group('/cities', function () use ($app) {
             $seo_title = $city->name .' | '. APP_NAME;
             $seo_desc = excerpt($city->description);
             $seo_url = BASE_URL ."cities/{$id}/{$name}";
-        
-            $app->render(THEME_PATH . 'cities.php', 
+            $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
+            return $this->get('PhpRenderer')->render($response, 'cities.php',
                         array('lang' => $lang,
+                            'flash'=>  $this->get('flash')->getMessages(),
                             'seo_url'=>$seo_url, 
                             'seo_title'=>$seo_title, 
                             'seo_desc'=>$seo_desc,
@@ -82,10 +90,15 @@ $app->group('/cities', function () use ($app) {
                             'id' => $id,
                             'number_of_pages'=>$number_of_pages,
                             'current_page'=>$page,
-                            'page_name'=>'cities'));
+                            'page_name'=>'cities',
+                            'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
+                            'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
+                            'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
+                            'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
+        ));
         } else {
-            $app->flash('danger', $lang->t('alert|page_not_found'));
-            $app->redirect(BASE_URL, 404);
+            $app->getContainer()->get('flash')->addMessage('danger', $lang->t('alert|page_not_found'));
+            return $response->withHeader('Location', BASE_URL); //TODO: 404
         }
         
     });

@@ -69,10 +69,10 @@ $app->group('/categories', function (RouteCollectorProxy $group) use ($app) {
             $seo_desc = excerpt($categ->description);
             $seo_url = BASE_URL ."categories/{$id}/{$name}";
             $csrf = $this->get('csrf');
-
-            //$renderer = new \Slim\Views\PhpRenderer(THEME_PATH);
+            $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
             return $this->get('PhpRenderer')->render($response,'categories.php',
                 array('lang' => $lang,
+                    'flash'=>  $this->get('flash')->getMessages(),
                     'seo_url'=>$seo_url,
                     'seo_title'=>$seo_title,
                     'seo_desc'=>$seo_desc,
@@ -87,11 +87,8 @@ $app->group('/categories', function (RouteCollectorProxy $group) use ($app) {
                     'csrf_token'=> $request->getAttribute($csrf->getTokenValueKey()),
                     'csrf_tokenname'=> $csrf->getTokenValueKey()));
         } else {
-            $this->get('flash')->addMessage('danger', $lang->t('alert|page_not_found'));
-            //$this->redirect(BASE_URL, 404);
-            //return $response->withStatus(404)->withHeader('Location', BASE_URL);
-            echo $this->get('flash')->getFirstMessage('danger');
-            return $response;
+            $app->getContainer()->get('flash')->addMessage('danger', $lang->t('alert|page_not_found'));
+            return $response->withHeader('Location', BASE_URL); //TODO: 404
         }
     });
 });

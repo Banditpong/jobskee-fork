@@ -1,4 +1,6 @@
 <?php
+use Slim\Routing\RouteCollectorProxy;
+
 /**
  * Jobskee - open source job board
  *
@@ -10,47 +12,49 @@
  * Shows job information and job posting option
  */
 
-$app->group('/jobs', function () use ($app) {
-    
+$app->group('/jobs', function (RouteCollectorProxy $group) use ($app, $mwHelpers) {
+
    // get job post form
-    $app->get('/new', 'isJobPostAllowed', 'isBanned', function () use ($app) {
-        
+    $group->get('/new', function ($request, $response, $args) use ($app) {
         global $lang;
         $token = token();
-        
         $seo_title = 'Post new job | '. APP_NAME;
         $seo_desc = 'Post a new job at '. APP_NAME;
         $seo_url = BASE_URL .'jobs/new';
-        
-        $app->render(THEME_PATH . 'job.new.php', 
+
+        $csrf = $this->get('csrf');
+        $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
+        return $this->get('PhpRenderer')->render($response, 'job.new.php',
                 array('lang' => $lang,
                     'seo_url'=>$seo_url, 
                     'seo_title'=>$seo_title, 
                     'seo_desc'=>$seo_desc, 
                     'token'=>$token,
                     'markdown'=>ACTIVE,
-                    'filestyle'=>ACTIVE));
-    });
-    
-    // review job
-    $app->post('/review', 'isJobPostAllowed', 'isBanned', 'isValidReferrer', function () use ($app) {
-        
-        global $lang;
+                    'filestyle'=>ACTIVE,
+                    'csrf_key'=> $request->getAttribute($csrf->getTokenNameKey()),
+                    'csrf_keyname' => $csrf->getTokenNameKey(),
+                    'csrf_token'=> $request->getAttribute($csrf->getTokenValueKey()),
+                    'csrf_tokenname'=> $csrf->getTokenValueKey()));
+    })->add($mwHelpers['isJobPostAllowed'])->add($mwHelpers['isBanned']);
 
-        $data = $app->request->post();
-        
-        if (Banlist::isBanned('email', $data['email']) 
-                || Banlist::isBanned('ip', $_SERVER['REMOTE_ADDR'])) {
-            $app->flash('danger', $lang->t('alert|ip_banned'));
-            $app->redirect(BASE_URL . "jobs/new");
-        }
-        
+    // review job
+    $group->post('/review' , function (\Slim\Psr7\Request $request, \Slim\Psr7\Response $response, $args) use ($app) {
+        global $lang;
+        $data = $request->getParsedBody(); //TODO
         $data = escape($data);
-        
-        if ($data['trap'] != '') {
-            $app->redirect(BASE_URL . "jobs/new");
+
+        if (Banlist::isBanned('email', $data['email'])
+                || Banlist::isBanned('ip', $_SERVER['REMOTE_ADDR'])) {
+            $app->getContainer()->get('flash')->addMessage('danger', $lang->t('alert|ip_banned'));
+            return $response->withHeader('Location', BASE_URL . "jobs/new");
         }
-        
+
+
+        if ($data['trap'] != '') {
+            return $response->withHeader('Location',BASE_URL . "jobs/new");
+        }
+
         if (isset($_FILES['logo']) && $_FILES['logo']['name'] != '') {
             $file = $_FILES['logo'];
             $path = IMAGE_PATH;
@@ -80,29 +84,28 @@ $app->group('/jobs', function () use ($app) {
         }
 
         if (!isset($id)) {
-            $app->flash('danger', $lang->t('alert|error_encountered'));
-            $app->redirect(BASE_URL ."jobs/new");
+            $this->get('flash')->addMessage('danger', $lang->t('alert|error_encountered'));//TODO
+            return $response->withHeader('Location', BASE_URL ."jobs/new");
         } else {
-            $app->redirect(BASE_URL ."jobs/{$id}/edit/{$data['token']}");
+            return $response->withHeader('Location', BASE_URL ."jobs/{$id}/edit/{$data['token']}");
         }
         
-    });
-    
+    })->add($mwHelpers['isJobPostAllowed'])->add($mwHelpers['isBanned'])->add($mwHelpers['isValidReferrer']);
+
     // post job publish form
-    $app->post('/:id/publish/:token', 'isJobPostAllowed', 'isBanned', 'isValidReferrer', function ($id, $token) use ($app) {
+    $group->post('/{id}/publish[/{token}]', function (\Slim\Psr7\Request $request, $response, $args) use ($app) {
         
         global $lang;
 
-        $data = $app->request->post();
-        $data = escape($data);
-        
+        $data = $request->getParsedBody() ;//todo?
+        $id = $args['id'];
         $j = new Jobs($id);
-        $job = $j->getJobFromToken($token);
+        $job = $j->getJobFromToken($args['token']);
         
         $data['is_featured'] = (isset($data['is_featured'])) ? 1 : 0;
-        
+
         if ($data['trap'] != '' || !$job) {
-            $app->redirect(BASE_URL . "jobs/new");
+            return $response->withHeader('Location', BASE_URL . "jobs/new");
         }
         if (isset($_FILES['logo']) && $_FILES['logo']['name'] != '') {
             $file = $_FILES['logo'];
@@ -127,16 +130,16 @@ $app->group('/jobs', function () use ($app) {
         
         $j->jobCreateUpdate($data);
         if (!$j->getStatus()) {
-            $app->flash('success', $lang->t('alert|activation_email', $job->email));
+            $this->get('flash')->addMessage('success', $lang->t('alert|activation_email', $job->email));
         } else {
-            $app->flash('success', $lang->t('alert|edit_successful'));
+            $this->get('flash')->addMessage('success', $lang->t('alert|edit_successful'));
         }
         
-        $app->redirect(BASE_URL . "jobs/{$id}/publish/{$token}");
-    });
+        return $response->withHeader('Location', BASE_URL . "jobs/{$id}/publish/{$token}");
+    })->add($mwHelpers['isJobPostAllowed'])->add($mwHelpers['isBanned'])->add($mwHelpers['isValidReferrer']);
     
     // get publish job details 
-    $app->get('/:id/publish/:token', 'isJobPostAllowed', 'isBanned', 'isValidReferrer', function ($id, $token) use ($app) {
+    $group->get('/{id}/publish[/{token}]', function ($request, $response, $args) use ($app) {
         
         global $lang;
 
@@ -152,9 +155,10 @@ $app->group('/jobs', function () use ($app) {
             $seo_title = clean($job->title) .' | '. APP_NAME;
             $seo_desc = excerpt($job->description);
             $seo_url = BASE_URL ."jobs/{$id}/{$title}";
-            
-            $app->render(THEME_PATH . 'job.publish.php', 
+            $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
+            return $this->get('PhpRenderer')->render($response, 'job.publish.php',
                         array('lang' => $lang,
+                            'flash'=>  $this->get('flash')->getMessages(),
                             'seo_url'=>$seo_url, 
                             'seo_title'=>$seo_title, 
                             'seo_desc'=>$seo_desc, 
@@ -162,57 +166,69 @@ $app->group('/jobs', function () use ($app) {
                             'city'=>$city, 
                             'category'=>$category));
         } else {
-            $app->flash('danger', $lang->t('alert|error_encountered'));
-            $app->redirect(BASE_URL . "jobs/{$id}/{$title}");
+            $this->get('flash')->addMessage('danger', $lang->t('alert|error_encountered'));
+            return $response->withHeader('Location', BASE_URL . "jobs/{$id}/{$title}");
         }        
-    });
+    })->add($mwHelpers['isJobPostAllowed'])->add($mwHelpers['isBanned'])->add($mwHelpers['isValidReferrer']);
     
     // edit job
-    $app->get('/:id/edit/:token', 'isJobPostAllowed', 'isBanned', function ($id, $token) use ($app) {
+    $group->get('/{id}/edit[/{token}]', function ($request, $response, $args) use ($app) {
         
         global $lang;
+        $data = $request->getParsedBody(); //TODO
+
+        if (!isset($args['id'])) {
+            $this->get('flash')->addMessage('danger', $lang->t('alert|error_encountered'));
+            return $response->withHeader('Location', BASE_URL ."jobs/new");
+        } else {
+            $id = (int) $args['id'];
+        }
 
         $j = new Jobs($id);
-        $job = $j->getJobFromToken($token);
+        $job = $j->getJobFromToken($args['token']);
         $title = $j->getSlugTitle();
-        
         if (isset($job) && $job) {
             $seo_title = 'Edit job | '. APP_NAME;
             $seo_desc = APP_DESC;
             $seo_url = BASE_URL;
-        
-            $app->render(THEME_PATH . 'job.review.php', 
+            $csrf = $this->get('csrf');
+            $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
+            return $this->get('PhpRenderer')->render($response, 'job.review.php',
                         array('lang' => $lang,
                             'seo_url'=>$seo_url, 
                             'seo_title'=>$seo_title, 
                             'seo_desc'=>$seo_desc, 
                             'job'=>$job,
                             'markdown'=>ACTIVE,
-                            'filestyle'=>ACTIVE));
+                            'filestyle'=>ACTIVE,
+                            'csrf_key'=> $request->getAttribute($csrf->getTokenNameKey()),
+                            'csrf_keyname' => $csrf->getTokenNameKey(),
+                            'csrf_token'=> $request->getAttribute($csrf->getTokenValueKey()),
+                            'csrf_tokenname'=> $csrf->getTokenValueKey()));
         } else {
-            $app->flash('danger', $lang->t('alert|error_encountered'));
-            $app->redirect(BASE_URL . "jobs/{$id}/{$title}");
+            $app->getContainer()->get('flash')->addMessage('danger', $lang->t('alert|error_encountered'));
+            return $response->withHeader('Location', BASE_URL . "jobs/{$id}/{$title}");
         }
-    });
+
+    })->add($mwHelpers['isJobPostAllowed'])->add($mwHelpers['isBanned']);
     
-    // delete existing job
-    $app->get('/:id/delete/:token', 'isJobPostAllowed', 'isBanned', function ($id, $token) use ($app) {
+    // delete existing job TODO
+    $group->get('/{id}/delete[/{token}]', function ($request, $response, $args) use ($app) {
         
         global $lang;
-
         $j = new Jobs($id);
         if ($j->deleteJob($token)) {
-            $app->flash('success', $lang->t('admin|delete_success', $id));
-            $app->redirect(BASE_URL);
+            $app->getContainer()->get('flash')->addMessage('success', $lang->t('admin|delete_success', $id));
+            return $response->withHeader('Location', BASE_URL);
         } else {
-            $app->flash('danger', $lang->t('admin|delete_error', $id));
-            $app->redirect(BASE_URL);
+            $app->getContainer()->get('flash')->addMessage('danger', $lang->t('admin|delete_error', $id));
+            return $response->withHeader('Location', BASE_URL);
         }
         
-    });
+    })->add($mwHelpers['isJobPostAllowed'])->add($mwHelpers['isBanned']);
     
     // activate job
-    $app->get('/:id/activate/:token', 'isJobPostAllowed', 'isBanned', function ($id, $token) use ($app) {
+    $group->get('/{id}/activate[/{token}]', function ($request, $response, $args) use ($app) {
         
         global $lang;
 
@@ -225,16 +241,16 @@ $app->group('/jobs', function () use ($app) {
             $notif->sendEmailsToSubscribersMail($id);
             
             $job = $j->showJobDetails();
-            $app->flash('success', $lang->t('admin|activate_success', $id));
-            $app->redirect(BASE_URL . "jobs/{$id}/{$title}");
+            $this->get('flash')->addMessage('success', $lang->t('admin|activate_success', $id));
+            return $response->withHeader('Location', BASE_URL . "jobs/{$id}/{$title}");
         } else {
-            $app->flash('danger', $lang->t('admin|activate_error', $id));
-            $app->redirect(BASE_URL);
+            $this->get('flash')->addMessage('danger', $lang->t('admin|activate_error', $id));
+            return $response->withHeader('location', BASE_URL);
         }
-    });
+    })->add($mwHelpers['isJobPostAllowed'])->add($mwHelpers['isBanned']);
     
     // deactivate job
-    $app->get('/:id/deactivate/:token', 'isJobPostAllowed', 'isBanned', function ($id, $token) use ($app) {
+    $group->get('/{id}/deactivate[/{token}]', function ($request, $response, $args) use ($app) {
 
         global $lang;
         
@@ -243,19 +259,19 @@ $app->group('/jobs', function () use ($app) {
         if ($j->deactivateJob($token)) {
             $job = $j->showJobDetails();
             $title = $j->getSlugTitle();
-            $app->flash('success', $lang->t('admin|deactivate_success', $id));
-            $app->redirect(BASE_URL);
+            $this->get('flash')->addMessage('success', $lang->t('admin|deactivate_success', $id));
+            return $response->withHeader('Location', BASE_URL);
         } else {
-            $app->flash('danger', $lang->t('admin|deactivate_error', $id));
-            $app->redirect(BASE_URL);
+            $this->get('flash')->addMessage('danger', $lang->t('admin|deactivate_error', $id));
+            return $response->withHeader('Location'. BASE_URL);
         }
-    });
-    
+    })->add($mwHelpers['isJobPostAllowed'])->add($mwHelpers['isBanned']);
+
     // show job information
-    $app->get('/:id(/:title)', function ($id, $title=null) use ($app) {
+    $group->get('/{id}[/{title}]',  function ($request, $response, $args) use ($app) {
 
         global $lang;
-        
+        $id = (int)$args['id'];
         $j = new Jobs($id);
         $job = $j->showJobDetails();
         $city = $j->getJobCity($job->city);
@@ -266,10 +282,11 @@ $app->group('/jobs', function () use ($app) {
             
             $seo_title = clean($job->title) .' | '. APP_NAME;
             $seo_desc = excerpt($job->description);
-            $seo_url = BASE_URL ."jobs/{$id}/{$title}";
-            
-            $app->render(THEME_PATH . 'job.show.php', 
+            $seo_url = BASE_URL ."jobs/{$args['id']}/{$args['title']}";
+            $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
+            return $this->get('PhpRenderer')->render($response, 'job.show.php',
                     array('lang' => $lang,
+                        'flash'=>  $this->get('flash')->getMessages(),
                         'seo_url'=>$seo_url, 
                         'seo_title'=>$seo_title, 
                         'seo_desc'=>$seo_desc, 
@@ -279,8 +296,7 @@ $app->group('/jobs', function () use ($app) {
                         'category'=>$category, 
                         'city'=>$city));
         } else {
-            $app->redirect(BASE_URL);
+            return $response->withHeader('Location', BASE_URL);
         }
-    }); 
-    
+    });
 });

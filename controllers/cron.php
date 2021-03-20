@@ -1,4 +1,5 @@
 <?php
+use Slim\Routing\RouteCollectorProxy;
 /**
  * Jobskee - open source job board
  *
@@ -10,12 +11,12 @@
  * List of available cron jobs
  */
 
-$app->group('/cron', function () use ($app) {
+$app->group('/cron', function (RouteCollectorProxy $group) use ($app) {
     
     // expire jobs
-    $app->get('/jobs/expire/:cron_token', function ($cron_token) use ($app) {
+    $group->get('/jobs/expire/{cron_token}', function ($request, $response, $args) use ($app) {
         
-        if (trim($cron_token) == CRON_TOKEN) {
+        if (trim($args['cron_token']) == CRON_TOKEN) {
             $j = new Jobs();
             $j->expireJobs();
             echo true;

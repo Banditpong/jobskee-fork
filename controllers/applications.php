@@ -9,14 +9,16 @@
  * Applications
  * Job application form submission
  */
+use Slim\Routing\RouteCollectorProxy;
 
-$app->group('/apply', function () use ($app) {
+$app->group('/apply', function (RouteCollectorProxy $group)  use ($app, $mwHelpers) {
     
     // get job post form
-    $app->get('/:job_id(/)', 'isBanned', function ($job_id) use ($app) {
+    $group->get('/{job_id}[/]', function ($request, $response, $args) use ($app) {
         
         global $lang;
-        
+        $job_id = isset($args['job_id']) ? intval($args['job_id']) : null;
+
         $token = token();
         
         $seo_title = $lang->t('apply|seo_title') .' | '. APP_NAME;
@@ -25,35 +27,40 @@ $app->group('/apply', function () use ($app) {
         
         $job = new Applications($job_id);
         $title = $job->getJobTitle();
-        
-        $app->render(THEME_PATH . 'apply.new.php', 
+        $this->get('PhpRenderer')->setTemplatePath(THEME_PATH);//Put this here??
+        return $this->get('PhpRenderer')->render($response, 'apply.new.php',
                     array('lang' => $lang,
+                        'flash'=>  $this->get('flash')->getMessages(),
                         'seo_url'=>$seo_url, 
                         'seo_title'=>$seo_title, 
                         'seo_desc'=>$seo_desc, 
                         'token'=>$token, 
                         'job_id'=>$job_id, 
                         'job_title'=>$title,
-                        'filestyle'=>ACTIVE));
+                        'filestyle'=>ACTIVE,
+                        'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
+                        'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
+                        'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
+                        'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
+    ));
     });
     
     // submit job application
-    $app->post('/submit', 'isValidReferrer', 'isBanned', function () use ($app) {
+    $group->post('/submit', function ($request, $response, $args) use ($app) {
 
         global $lang;
-        
-        $data = $app->request->post();
-        
+
+        $data = $request->getParsedBody();
+        $data = escape($data);
+
         if (Banlist::isBanned('email', $data['email']) 
                 || Banlist::isBanned('ip', $_SERVER['REMOTE_ADDR'])) {
-            $app->flash('danger', $lang->t('apply|email_ip_banned'));
-            $app->redirect(BASE_URL . "apply/{$data['job_id']}");
+            $app->getContainer()->get('flash')->addMessage('danger', $lang->t('apply|email_ip_banned'));
+            return $response->withHeader('Location', BASE_URL . "apply/{$data['job_id']}");
         }
-        
-        $data = escape($data);
-        
+
         if ($data['trap'] != '') {
-            $app->redirect(BASE_URL . "apply/{$data['job_id']}");
+            return $response->withHeader('Location', BASE_URL . "apply/{$data['job_id']}");
         }
         
         if (isset($_FILES['attachment']) && $_FILES['attachment']['name'] != '') {
@@ -72,12 +79,12 @@ $app->group('/apply', function () use ($app) {
         
         $apply = new Applications($data['job_id']);
         if ($apply->applyForJob($data)) {
-            $app->flash('success', $lang->t('apply|msg_success'));
+            $app->getContainer()->get('flash')->addMessage('success', $lang->t('apply|msg_success'));
         } else {
-            $app->flash('danger', $lang->t('apply|msg_fail'));
+            $app->getContainer()->get('flash')->addMessage('danger', $lang->t('apply|msg_fail'));
         }
         $title = $apply->getJobTitleURL();
-        $app->redirect(BASE_URL ."jobs/{$data['job_id']}/{$title}");
-    }); 
+        return $response->withHeader('Location', BASE_URL ."jobs/{$data['job_id']}/{$title}");
+    })->add($mwHelpers['isValidReferrer']);
     
-});
+})->add($mwHelpers['isBanned']);
