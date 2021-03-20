@@ -126,7 +126,8 @@
                 <input type="hidden" name="id" value="<?php _e($job->id); ?>" />
                 <input type="hidden" name="token" value="<?php _e($job->token); ?>" />
                 <input type="hidden" name="trap" value="" />
-                <input type="hidden" name="<?php _e($csrf_key); ?>" value="<?php _e($csrf_token); ?>">
+                <input type="hidden" name="<?php _e($csrf_keyname); ?>" value="<?php _e($csrf_key); ?>">
+                <input type="hidden" name="<?php _e($csrf_tokenname); ?>" value="<?php _e($csrf_token); ?>">
                 <input type="submit" class="btn btn-success btn-lg" value="<?php echo $lang->t('jobs|btn_submit'); ?>" />
             </div>
         </div>

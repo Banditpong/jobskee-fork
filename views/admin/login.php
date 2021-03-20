@@ -22,8 +22,9 @@
   </div>
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-5">
-      <input type="hidden" name="<?php _e($csrf_key); ?>" value="<?php _e($csrf_token); ?>">
-      <button type="submit" class="btn btn-default"><?php echo $lang->t('link|login'); ?></button>
+        <input type="hidden" name="<?php _e($csrf_keyname); ?>" value="<?php _e($csrf_key); ?>">
+        <input type="hidden" name="<?php _e($csrf_tokenname); ?>" value="<?php _e($csrf_token); ?>">
+        <button type="submit" class="btn btn-default"><?php echo $lang->t('link|login'); ?></button>
     </div>
   </div>
 </form>

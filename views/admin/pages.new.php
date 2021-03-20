@@ -47,8 +47,9 @@
         <div class="form-group">
             <div class="text-center">
               <input type="hidden" id="trap" name="trap" value="" />
-              <input type="hidden" name="<?php _e($csrf_key); ?>" value="<?php _e($csrf_token); ?>">
-              <input type="submit" class="btn btn-success btn-lg" value="<?php echo $lang->t('admin|btn_submit'); ?>" />
+                <input type="hidden" name="<?php _e($csrf_keyname); ?>" value="<?php _e($csrf_key); ?>">
+                <input type="hidden" name="<?php _e($csrf_tokenname); ?>" value="<?php _e($csrf_token); ?>">
+                <input type="submit" class="btn btn-success btn-lg" value="<?php echo $lang->t('admin|btn_submit'); ?>" />
             </div>
         </div>
     </form>

@@ -60,7 +60,8 @@
         <input type="text" class="form-control" name="sort" placeholder="<?php echo $lang->t('admin|tbl_sort'); ?>" value="<?php if ($city && $city->sort) { _e($city->sort); } ?>" required />
       </div>
       <input type="hidden" name="id" value="<?php if ($city && $city->id) { _e($city->id); } ?>">
-      <input type="hidden" name="<?php _e($csrf_key); ?>" value="<?php _e($csrf_token); ?>">
+      <input type="hidden" name="<?php _e($csrf_keyname); ?>" value="<?php _e($csrf_key); ?>">
+      <input type="hidden" name="<?php _e($csrf_tokenname); ?>" value="<?php _e($csrf_token); ?>">
       <button type="submit" class="btn btn-info"><?php echo $lang->t('admin|btn_submit'); ?></button>
     </form>
   </div>
