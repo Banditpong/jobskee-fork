@@ -19,7 +19,7 @@ Stacks used
 
 Requirements
 ------------
-* PHP 5.3 and above
+* PHP 7.2 and above
 * MySQL
 * mod_rewrite enabled
 
@@ -38,14 +38,6 @@ Password: admin
 
 Installation Notes
 ------------------
-
-### Enable PHP5.3+ using .htaccess
-
-Some old hosting providers still use PHP5.2 version, note that Jobskee will not run on this old version.
-
-In order to use PHP5.3+, you can edit .htaccess file in the root folder and uncomment (remove the pound sign at the beginning of) this line:
-
-﻿`AddType application/x-httpd-php53 .php`
 
 ### Importing jobskee.sql
 
