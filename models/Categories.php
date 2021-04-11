@@ -5,44 +5,46 @@
  * @author      Elinore Tenorio <elinore.tenorio@gmail.com>
  * @license     MIT
  * @url         http://www.jobskee.com
- * 
+ *
  * Categories class handles category display and management
  */
 
-class Categories {
-    
+class Categories
+{
+
     private $_id;
-    
-    public function __construct($id) 
+
+    public function __construct($id)
     {
         $this->_id = $id;
     }
-    
-    public function findCategory() 
+
+    public function findCategory()
     {
-        $category = R::findOne('categories', ' id=:id ', array(':id'=>$this->_id));
+        $category = R::findOne('categories', ' id=:id ', array(':id' => $this->_id));
         return $category;
     }
-    
-    public function findCategoryJobs($start, $limit) 
+
+    public function findCategoryJobs($start, $limit)
     {
-        $jobs = R::findAll('jobs', " status=1 AND category=:category ORDER BY created DESC LIMIT :start, :limit ", 
-                            array(':category'=>$this->_id, ':start'=>$start, ':limit'=>$limit));
+        $jobs = R::findAll('jobs', " status=1 AND category=:category ORDER BY created DESC LIMIT :start, :limit ",
+            array(':category' => $this->_id, ':start' => $start, ':limit' => $limit));
         return $jobs;
     }
 
-    public function findAllCategoryJobs() 
+    public function findAllCategoryJobs()
     {
-        $jobs = R::findAll('jobs', " status=1 AND category=:category ORDER BY created DESC LIMIT 0, 100", 
-                            array(':category'=>$this->_id));
+        $jobs = R::findAll('jobs', " status=1 AND category=:category ORDER BY created DESC LIMIT 0, 100",
+            array(':category' => $this->_id));
         return $jobs;
     }
-    
-    public function countCategoryJobs() {
-        $count = R::count('jobs', " status=1 AND category=:category ", array(':category'=>$this->_id));
+
+    public function countCategoryJobs()
+    {
+        $count = R::count('jobs', " status=1 AND category=:category ", array(':category' => $this->_id));
         return $count;
     }
-    
+
     public function addCategory($data)
     {
         if (isset($data['id']) && $data['id'] > 0) {
@@ -57,10 +59,10 @@ class Categories {
         $id = R::store($category);
         return $id;
     }
-    
+
     public function deleteCategory()
     {
-        $count = R::count('jobs', " category=:category ", array(':category'=>$this->_id));
+        $count = R::count('jobs', " category=:category ", array(':category' => $this->_id));
         if (!$count) {
             $category = R::load('categories', $this->_id);
             R::trash($category);
@@ -68,11 +70,11 @@ class Categories {
         }
         return false;
     }
-    
-    public static function findCategories() 
+
+    public static function findCategories()
     {
         $categories = R::findAll('categories', ' ORDER BY sort ASC ');
         return $categories;
     }
-    
+
 }

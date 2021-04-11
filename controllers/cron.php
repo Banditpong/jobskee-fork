@@ -1,5 +1,7 @@
 <?php
+
 use Slim\Routing\RouteCollectorProxy;
+
 /**
  * Jobskee - open source job board
  *
@@ -12,10 +14,10 @@ use Slim\Routing\RouteCollectorProxy;
  */
 
 $app->group('/cron', function (RouteCollectorProxy $group) use ($app) {
-    
+
     // expire jobs
     $group->get('/jobs/expire/{cron_token}', function ($request, $response, $args) use ($app) {
-        
+
         if (trim($args['cron_token']) == CRON_TOKEN) {
             $j = new Jobs();
             $j->expireJobs();
@@ -23,5 +25,5 @@ $app->group('/cron', function (RouteCollectorProxy $group) use ($app) {
             exit();
         }
     });
-    
+
 });

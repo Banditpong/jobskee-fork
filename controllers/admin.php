@@ -13,7 +13,6 @@ use Slim\Routing\RouteCollectorProxy;
  * Jobskee admin panel
  */
 
-
 define('ADMIN_MANAGE', ADMIN_URL . 'manage');
 
 /*
@@ -103,7 +102,6 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             foreach ($categories as $cat) {
                 $jobs[$cat->id] = $j->getJobs(INACTIVE, $cat->id);
             }
-
             return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'home.php',
                 array(
                     'lang' => $lang,
@@ -140,7 +138,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
                 global $lang;
 
                 $id = isset($args['id']) ? intval($args['id']) : null;
-                $action = isset($args['action']) ?  $args['action']: null; //TODO
+                $action = isset($args['action']) ? $args['action'] : null; //TODO
                 $category = null;
 
                 if ($id && $action == 'edit') {
@@ -158,11 +156,16 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
                 $categories = Categories::findCategories();
                 return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'categories.edit.php',
-                    array('lang' => $lang, 'flash'=>  $this->get('flash')->getMessages(), 'categs' => $categories, 'category' => $category,
+                    array(
+                        'lang' => $lang,
+                        'flash' => $this->get('flash')->getMessages(),
+                        'categs' => $categories,
+                        'category' => $category,
                         'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
                         'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
                         'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
-                        'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
+                        'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
+                    ));
             });
         });
 
@@ -193,7 +196,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
                 global $lang;
                 $id = isset($args['id']) ? intval($args['id']) : null;
-                $action = isset($args['action']) ?  $args['action']: null; //TODO
+                $action = isset($args['action']) ? $args['action'] : null; //TODO
                 $city = null;
 
                 $c = new Cities($id);
@@ -204,17 +207,22 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
                     if ($c->deleteCity()) {
                         $app->getContainer()->get('flash')->addMessage('success', $lang->t('admin|city_delete'));
                     } else {
-                        $app->getContainer()->get('flash')->addMessage( 'danger', $lang->t('admin|city_not_delete'));
+                        $app->getContainer()->get('flash')->addMessage('danger', $lang->t('admin|city_not_delete'));
                     }
                     return $response->withHeader('Location', ADMIN_MANAGE . '/cities');
                 }
                 $cities = Cities::findCities();
                 return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'cities.edit.php',
-                    array('lang' => $lang, 'cits' => $cities, 'city' => $city, 'flash' => $this->get('flash')->getMessages(),
+                    array(
+                        'lang' => $lang,
+                        'cits' => $cities,
+                        'city' => $city,
+                        'flash' => $this->get('flash')->getMessages(),
                         'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
                         'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
                         'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
-                        'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
+                        'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
+                    ));
 
             });
 
@@ -233,13 +241,15 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
         $group->get('/upload', function ($request, $response, $args) use ($app) {
 
             global $lang;
-            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'upload.php', array('lang' => $lang,
-                'flash'=>  $this->get('flash')->getMessages(),
+            return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'upload.php', array(
+                'lang' => $lang,
+                'flash' => $this->get('flash')->getMessages(),
                 'filestyle' => ACTIVE,
                 'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
                 'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
                 'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
-                'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
+                'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
+            ));
         });
 
         // process csv file
@@ -341,7 +351,8 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
                     'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
                     'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
                     'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
-                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
+                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
+                ));
         });
 
         // review job
@@ -429,7 +440,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
         $group->get('/{id}/publish/{token}', function ($request, $response, $args) use ($app) {
 
             global $lang;
-            $id = (int) $args['id'];
+            $id = (int)$args['id'];
             $token = $args['token'];
 
             $j = new Jobs($id);
@@ -455,7 +466,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
         $group->get('/{id}/edit/{token}', function ($request, $response, $args) use ($app) {
 
             global $lang;
-            $id = (int) $args['id'];
+            $id = (int)$args['id'];
             $token = $args['token'];
             $j = new Jobs($id);
             $job = $j->getJobFromToken($token);
@@ -471,7 +482,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
                         'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
                         'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
                         'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
-            ));
+                    ));
             } else {
                 $job = $j->showJobDetails();
                 $title = $j->getSlugTitle();
@@ -485,8 +496,8 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
             global $lang;
             $id = isset($args['id']) ? intval($args['id']) : null;
-            $token = isset($args['token']) ? $args['token']: null;
-            $action = isset($args['action']) ? $args['action']: null;
+            $token = isset($args['token']) ? $args['token'] : null;
+            $action = isset($args['action']) ? $args['action'] : null;
 
             $j = new Jobs($id);
             $title = $j->getSlugTitle();
@@ -504,7 +515,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
             global $lang;
             $id = isset($args['id']) ? intval($args['id']) : null;
-            $token = isset($args['token']) ? $args['token']: null;
+            $token = isset($args['token']) ? $args['token'] : null;
 
             $j = new Jobs($id);
             if ($j->deleteJob($token)) {
@@ -552,10 +563,10 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
                 $job = $j->showJobDetails();
                 $title = $j->getSlugTitle();
                 $app->getContainer()->get('flash')->addMessage('success', $lang->t('admin|deactivate_success', $id));
-                return $response->withHeader('Location',ADMIN_URL . "jobs/{$job->id}/{$title}");
+                return $response->withHeader('Location', ADMIN_URL . "jobs/{$job->id}/{$title}");
             } else {
                 $app->getContainer()->get('flash')->addMessage('danger', $lang->t('admin|deactivate_error', $id));
-                return $response->withHeader('Location',ADMIN_URL . "jobs/$id");
+                return $response->withHeader('Location', ADMIN_URL . "jobs/$id");
             }
         });
 
@@ -604,7 +615,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
             global $lang;
             $id = isset($args['id']) ? (int)($args['id']) : null;
-            $page = isset($args['page']) ?  $args['page']: null; //TODO
+            $page = isset($args['page']) ? $args['page'] : null; //TODO
 
             $cat = new Categories($id);
             $start = getPaginationStart($page);
@@ -647,7 +658,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
             global $lang;
             $id = isset($args['id']) ? intval($args['id']) : null;
-            $name = isset($args['name']) ?  $args['name']: null;
+            $name = isset($args['name']) ? $args['name'] : null;
             $page = isset($args['page']) ? intval($args['page']) : 1;
 
             $cit = new Cities($id);
@@ -702,12 +713,16 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
             global $lang;
             return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'pages.new.php',
-                array('lang' => $lang, 'method' => 'new', 'markdown' => ACTIVE,
+                array(
+                    'lang' => $lang,
+                    'method' => 'new',
+                    'markdown' => ACTIVE,
                     'flash' => $this->get('flash')->getMessages(),
                     'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
                     'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
                     'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
-                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
+                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
+                ));
         });
 
         $group->get('/edit/{id}', function ($request, $response, $args) use ($app) {
@@ -718,12 +733,17 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             $p = new Pages();
             $page = $p->showPage($id);
             return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'pages.edit.php',
-                array('lang' => $lang, 'page' => $page, 'method' => 'edit', 'markdown' => ACTIVE,
+                array(
+                    'lang' => $lang,
+                    'page' => $page,
+                    'method' => 'edit',
+                    'markdown' => ACTIVE,
                     'flash' => $this->get('flash')->getMessages(),
                     'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
                     'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
                     'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
-                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
+                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
+                ));
         });
 
         $group->get('/delete/{id}', function ($request, $response, $args) use ($app) {
@@ -761,7 +781,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
                     'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
                     'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
                     'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
-        ));
+                ));
 
         });
 
@@ -773,7 +793,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
      */
     $group->group('/blocks', function (RouteCollectorProxy $group) use ($app, $mwHelpers) {
 
-        $group->post('[/]', function ($request, $response, $args)  use ($app) {
+        $group->post('[/]', function ($request, $response, $args) use ($app) {
 
             global $lang;
 
@@ -792,12 +812,15 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
             global $lang;
             return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'blocks.new.php',
-                array('lang' => $lang, 'method' => 'new',
-                    'flash'=>  $this->get('flash')->getMessages(),
+                array(
+                    'lang' => $lang,
+                    'method' => 'new',
+                    'flash' => $this->get('flash')->getMessages(),
                     'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
                     'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
                     'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
-                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
+                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
+                ));
         });
 
         $group->get('/edit/{id}', function ($request, $response, $args) use ($app) {
@@ -808,12 +831,16 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
             $b = new Blocks();
             $block = $b->showBlock($id);
             return $this->get('PhpRenderer')->render($response, ADMIN_THEME . 'blocks.edit.php',
-                array('lang' => $lang, 'block' => $block, 'method' => 'edit',
-                'flash'=>  $this->get('flash')->getMessages(),
-                'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
-                'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
-                'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
-                'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
+                array(
+                    'lang' => $lang,
+                    'block' => $block,
+                    'method' => 'edit',
+                    'flash' => $this->get('flash')->getMessages(),
+                    'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
+                    'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
+                    'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
+                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
+                ));
         });
 
         $group->get('/delete/{id}', function ($request, $response, $args) use ($app) {
@@ -859,7 +886,7 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
      */
     $group->group('/ban', function (RouteCollectorProxy $group) use ($app, $mwHelpers) {
 
-        $group->post('[/]', function ($request, $response, $args)  use ($app) {
+        $group->post('[/]', function ($request, $response, $args) use ($app) {
 
             global $lang;
 
@@ -907,7 +934,8 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
                     'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
                     'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
                     'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
-                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
+                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
+                ));
         });
 
     })->add($mwHelpers['validateUser']);
@@ -1005,8 +1033,8 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
 
             global $lang;
             $id = isset($args['id']) ? intval($args['id']) : null;
-            $action = isset($args['action']) ? $args['action']: null;
-            $token = isset($args['token']) ? $args['token']: null;
+            $action = isset($args['action']) ? $args['action'] : null;
+            $token = isset($args['token']) ? $args['token'] : null;
             $category = null;
 
             $s = new Subscriptions('');
@@ -1020,7 +1048,8 @@ $app->group('/admin', function (RouteCollectorProxy $group) use ($app, $mwHelper
                         break;
                     case 'deactivate':
                         $s->updateSubscription($id, INACTIVE);
-                        $app->getContainer()->get('flash')->addMessage('success', $lang->t('admin|subscribe_deactivate'));
+                        $app->getContainer()->get('flash')->addMessage('success',
+                            $lang->t('admin|subscribe_deactivate'));
                         break;
                     case 'delete':
                         $s->deleteSubscription($id, $token);

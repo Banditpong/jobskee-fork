@@ -1,5 +1,7 @@
 <?php
+
 use Slim\Routing\RouteCollectorProxy;
+
 /**
  * Jobskee - open source job board
  *
@@ -15,10 +17,10 @@ use Slim\Routing\RouteCollectorProxy;
 $app->group('/subscribe', function (RouteCollectorProxy $group) use ($app, $mwHelpers) {
 
     $group->post('/new', function ($request, $response, $args) use ($app) {
-        
+
         global $categories, $cities;
         global $lang;
-        
+
         $data = $request->getParsedBody();
         $data = escape($data);
 
@@ -29,7 +31,7 @@ $app->group('/subscribe', function (RouteCollectorProxy $group) use ($app, $mwHe
         } else {
             $subscription_for = $cities[$data['city_id']]['name'];
         }
-        
+
         if ($data['trap'] == '') {
             $subscribe = new Subscriptions($data['email'], $data['category_id'], $data['city_id']);
             if ($subscribe->createSubscription($subscription_for)) {
@@ -48,8 +50,8 @@ $app->group('/subscribe', function (RouteCollectorProxy $group) use ($app, $mwHe
 
         global $lang;
         $id = (int)$args['id'];
-        $action = isset($args['action']) ? $args['action']: null;
-        $token = isset($args['token']) ? $args['token']: null;
+        $action = isset($args['action']) ? $args['action'] : null;
+        $token = isset($args['token']) ? $args['token'] : null;
 
         $status = ($action == 'confirm') ? ACTIVE : INACTIVE;
         $s = new Subscriptions('');
@@ -66,7 +68,7 @@ $app->group('/subscribe', function (RouteCollectorProxy $group) use ($app, $mwHe
             $app->getContainer()->get('flash')->addMessage('danger', $lang->t('subscribe|confirm_error'));
             return $response->withHeader('Location', BASE_URL);
         }
-        
+
     });
-    
+
 })->add($mwHelpers['isBanned']);

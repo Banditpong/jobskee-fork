@@ -9,6 +9,7 @@
  * Categories
  * Shows jobs per category
  */
+
 use Slim\Routing\RouteCollectorProxy;
 
 $app->group('/categories', function (RouteCollectorProxy $group) use ($app) {
@@ -22,7 +23,7 @@ $app->group('/categories', function (RouteCollectorProxy $group) use ($app) {
     $group->get('/{id}/{name}/rss[/]', function ($request, $response, $args) use ($app) {
 
         global $lang;
-        $id = (int) $args['id'];
+        $id = (int)$args['id'];
         $cat = new Categories($id);
         $info = $cat->findCategory();
 
@@ -30,17 +31,19 @@ $app->group('/categories', function (RouteCollectorProxy $group) use ($app) {
 
         $xml = new SimpleXMLElement('<rss version="2.0"></rss>');
         $xml->addChild('channel');
-        $xml->channel->addChild('title', htmlentities(escapeXML($info->name)) ." ". $lang->t('jobs|jobs') .' | '. APP_NAME); 
+        $xml->channel->addChild('title',
+            htmlentities(escapeXML($info->name)) . " " . $lang->t('jobs|jobs') . ' | ' . APP_NAME);
         $xml->channel->addChild('link', BASE_URL . "categories/{$info->id}/{$info->url}");
-        $xml->channel->addChild('description', htmlentities(escapeXML($info->description))); 
-        foreach ($jobs as $job) { 
-            $item = $xml->channel->addChild('item'); 
-            $item->addChild('title', htmlentities(escapeXML($job->title))); 
-            $item->addChild('link', BASE_URL . "jobs/{$job->id}/". slugify($job->title ." {$lang->t('jobs|at')} ". $job->company_name));
+        $xml->channel->addChild('description', htmlentities(escapeXML($info->description)));
+        foreach ($jobs as $job) {
+            $item = $xml->channel->addChild('item');
+            $item->addChild('title', htmlentities(escapeXML($job->title)));
+            $item->addChild('link',
+                BASE_URL . "jobs/{$job->id}/" . slugify($job->title . " {$lang->t('jobs|at')} " . $job->company_name));
             $item->addChild('description', htmlentities(escapeXML($job->description)));
-            $guid = $item->addChild('guid', $job->id .'@' . BASE_URL); 
+            $guid = $item->addChild('guid', $job->id . '@' . BASE_URL);
             $guid->addAttribute('isPermaLink', "false");
-            $item->addChild('pubDate', date(DATE_RSS, strtotime($job->created))); 
+            $item->addChild('pubDate', date(DATE_RSS, strtotime($job->created)));
         }
         $dom = new DOMDocument();
         $dom->preserveWhiteSpace = false;
@@ -57,33 +60,35 @@ $app->group('/categories', function (RouteCollectorProxy $group) use ($app) {
         $cat = new Categories($id);
         $categ = $cat->findCategory();
         $name = isset($args['name']) ? htmlentities($args['name']) : '';
-        $page = isset($args['page'])? (int)$args['page'] : 1;
+        $page = isset($args['page']) ? (int)$args['page'] : 1;
 
         if (isset($categ) && $categ) {
             $start = getPaginationStart();
             $count = $cat->countCategoryJobs($page);
-            $number_of_pages = ceil($count/LIMIT);
+            $number_of_pages = ceil($count / LIMIT);
             $jobs = $cat->findCategoryJobs($start, LIMIT);
 
-            $seo_title = $categ->name .' | '. APP_NAME;
+            $seo_title = $categ->name . ' | ' . APP_NAME;
             $seo_desc = excerpt($categ->description);
-            $seo_url = BASE_URL ."categories/{$id}/{$name}";
+            $seo_url = BASE_URL . "categories/{$id}/{$name}";
             return $this->get('PhpRenderer')->render($response, THEME_PATH . 'categories.php',
-                array('lang' => $lang,
-                    'flash'=>  $this->get('flash')->getMessages(),
-                    'seo_url'=>$seo_url,
-                    'seo_title'=>$seo_title,
-                    'seo_desc'=>$seo_desc,
-                    'categ'=>$categ,
-                    'jobs'=>$jobs,
+                array(
+                    'lang' => $lang,
+                    'flash' => $this->get('flash')->getMessages(),
+                    'seo_url' => $seo_url,
+                    'seo_title' => $seo_title,
+                    'seo_desc' => $seo_desc,
+                    'categ' => $categ,
+                    'jobs' => $jobs,
                     'id' => $id,
-                    'number_of_pages'=>$number_of_pages,
-                    'current_page'=>$page,
-                    'page_name'=>'categories',
+                    'number_of_pages' => $number_of_pages,
+                    'current_page' => $page,
+                    'page_name' => 'categories',
                     'csrf_key' => $request->getAttribute($this->get('csrf')->getTokenNameKey()),
                     'csrf_keyname' => $this->get('csrf')->getTokenNameKey(),
                     'csrf_token' => $request->getAttribute($this->get('csrf')->getTokenValueKey()),
-                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()));
+                    'csrf_tokenname' => $this->get('csrf')->getTokenValueKey()
+                ));
         } else {
             $app->getContainer()->get('flash')->addMessage('danger', $lang->t('alert|page_not_found'));
             return $response->withHeader('Location', BASE_URL); //TODO: 404
